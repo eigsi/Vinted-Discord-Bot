@@ -1,8 +1,23 @@
 # Stage technicien du 27 mai au 21 juillet 2024 au soir.
 
 Le but de ce projet est de réaliser un watcher en JavaScript en utilisant un conteneur Docker.
-## Exécution du projet 
-```docker build -t nomConteneur .```
+## Prérequis
+- Docker doit être installé
+- Node.js doit être installé pour le developpement local
 
-```docker run -dp 3000:3000 -v $(pwd)/data:/app/data nomConteneur```
+## Installation
+1. **Cloner le repo**
+```bash
+git clone https://github.com/eigsi/stage.git
+cd stage
+```
+2. **Créer un dossier pour le volume (si ce n'est pas déjà fait)**
+```bash
+mkdir -p $(pwd)/data
+```
+
+## Exécution du projet 
+```bash
+docker build -t nomConteneur .
+docker run -dp 3000:3000 -v $(pwd)/data:/app/data nomConteneur```
 
