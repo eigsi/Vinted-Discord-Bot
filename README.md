@@ -19,5 +19,17 @@ mkdir -p $(pwd)/data
 ## Exécution du projet 
 ```bash
 docker build -t nomConteneur .
-docker run -dp 3000:3000 -v $(pwd)/data:/app/data nomConteneur```
+docker run -dp 3000:3000 -v $(pwd)/data:/app/data nomConteneur
+```
+
+## Configuration des variables d'environnement
+Les variables d'environnement du projet sont définies dans un fichier .env
+### Exemple de configuartion 
+```env
+PORT = 3000
+MESSAGE = "Hello World"
+```
+### Explication des variables
+- `PORT` = Port d'activation du docker
+- `MESSAGE` = Message affiché sur l'url par défaut
 
