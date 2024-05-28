@@ -27,9 +27,10 @@ Les variables d'environnement du projet sont définies dans un fichier .env
 ### Exemple de configuartion 
 ```env
 PORT = 3000
-MESSAGE = "Hello World"
+MESSAGE = 'Hello World'
+FILE_PATH = '/app/data/test.txt'
 ```
 ### Explication des variables
 - `PORT` = Port d'activation du docker
 - `MESSAGE` = Message affiché sur l'url par défaut
-
+- `FILE_PATH` = chemin et nom du fichier créé dans le volume
