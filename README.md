@@ -1,4 +1,4 @@
-# Stage technicien du 27 mai au 21 juillet 2024 au soir.
+# Stage technicien du 27 mai au 21 juillet 2024.
 
 Le but de ce projet est de réaliser un watcher en JavaScript en utilisant un conteneur Docker.
 ## Prérequis
@@ -24,13 +24,15 @@ docker run -dp 3000:3000 -v $(pwd)/data:/app/data nomConteneur
 
 ## Configuration des variables d'environnement
 Les variables d'environnement du projet sont définies dans un fichier .env
-### Exemple de configuartion 
+### Exemple de configuration 
 ```env
 PORT = 3000
 MESSAGE = 'Hello World'
 FILE_PATH = '/app/data/test.txt'
+FILE_PATH_INIT = '/app/data/init.txt'
 ```
 ### Explication des variables
 - `PORT` = Port d'activation du docker
 - `MESSAGE` = Message affiché sur l'url par défaut
-- `FILE_PATH` = chemin et nom du fichier créé dans le volume
+- `FILE_PATH` = chemin et nom du fichier créé dans le volume à chaque venue sur l'url
+- `FILE_PATH_INIT` = chemin et nom du fichier créé dans le volume au lancement du conteneur
