@@ -15,11 +15,20 @@ cd stage
 ```bash
 mkdir -p $(pwd)/data
 ```
+3. **Installer Chrome pour Puppeteer**
+```bash
+npx puppeteer browsers install chrome
+```
 
 ## Exécution du projet 
+- Il est nécessaire d'ajouter `--platform linux/arm64` seulement pour les mac ayant une puce Apple Silicon
+- `nom` est à remplacer par le nom du conteneur
+- `--load` permet de générer l'image docker localement et pas seulement dans le cache
+
 ```bash
-docker build -t nomConteneur .
-docker run -dp 3000:3000 -v $(pwd)/data:/app/data nomConteneur
+docker buildx build --platform linux/arm64 -t nom . --load
+docker run --platform linux/arm64 -i --init --rm --cap-add=SYS_ADMIN --name puppeteer-chrome -dp 3000:3000 -v $(pwd)/data:/home/pptruser/data nom
+
 ```
 
 ## Configuration des variables d'environnement
@@ -28,8 +37,8 @@ Les variables d'environnement du projet sont définies dans un fichier .env
 ```env
 PORT = 3000
 MESSAGE = 'Hello World'
-FILE_PATH = '/app/data/test.txt'
-FILE_PATH_INIT = '/app/data/init.txt'
+FILE_PATH = '/home/pptruser/data/test.txt'
+FILE_PATH_INIT = '/home/pptruser/data/Init.txt'
 ```
 ### Explication des variables
 - `PORT` = Port d'activation du docker
