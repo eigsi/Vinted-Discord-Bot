@@ -15,9 +15,10 @@ cd stage
 ```bash
 mkdir -p $(pwd)/data
 ```
-3. **Installer Chrome pour Puppeteer**
+3. **Installer Chrome pour Puppeteer & discord.js**
 ```bash
 npx puppeteer browsers install chrome
+npm i discord.js
 ```
 
 ## Exécution du projet 
@@ -40,6 +41,8 @@ MESSAGE = 'Hello World'
 FILE_PATH = '/home/pptruser/data/test.txt'
 FILE_PATH_INIT = '/home/pptruser/data/Init.txt'
 URL = 'https://www.vinted.fr/catalog?catalog[]=2050&price_to=50&currency=EUR&price_from=10'
+DISCORD_BOT_TOKEN = 'CNIQ4TIFNOEIPJFQOjosdfjqsofi4MTkzNqrdFEL3progjq987a40'
+DISCORD_CHANNEL_ID = '1236259281935007744'
 ```
 ### Explication des variables
 - `PORT` = Port d'activation du docker
@@ -47,3 +50,5 @@ URL = 'https://www.vinted.fr/catalog?catalog[]=2050&price_to=50&currency=EUR&pri
 - `FILE_PATH` = chemin et nom du fichier créé dans le volume à chaque venue sur l'url
 - `FILE_PATH_INIT` = chemin et nom du fichier créé dans le volume au lancement du conteneur
 - `URL` = lien de la page à surveiller
+- `DISCORD_BOT_TOKEN` = Token du bot discord
+- `DISCORD_CHANNEL_ID` = ID du channel discord
