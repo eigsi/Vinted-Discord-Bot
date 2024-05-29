@@ -39,9 +39,11 @@ PORT = 3000
 MESSAGE = 'Hello World'
 FILE_PATH = '/home/pptruser/data/test.txt'
 FILE_PATH_INIT = '/home/pptruser/data/Init.txt'
+URL = 'https://www.vinted.fr/catalog?catalog[]=2050&price_to=50&currency=EUR&price_from=10'
 ```
 ### Explication des variables
 - `PORT` = Port d'activation du docker
 - `MESSAGE` = Message affiché sur l'url par défaut
 - `FILE_PATH` = chemin et nom du fichier créé dans le volume à chaque venue sur l'url
 - `FILE_PATH_INIT` = chemin et nom du fichier créé dans le volume au lancement du conteneur
+- `URL` = lien de la page à surveiller

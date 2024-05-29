@@ -5,10 +5,11 @@ const fs = require('fs');
 const express = require('express');
 const app = express();
 
-//parameters
+//paramètres
 const content = 'Pitié faites que ça marche';
 const filePath = process.env.FILE_PATH || '/home/pptruser/data/test.txt';
 const filePath_Init = process.env.FILE_PATH_INIT || '/home/pptruser/data/Init.txt';
+const URL = process.env.URL || 'https://www.vinted.fr';
 const port = process.env.PORT || 3000; //variable par défaut au cas où
 const message = process.env.MESSAGE || 'Hello World!';
 
@@ -25,30 +26,46 @@ function init(data) {
     })
 }
 
-// fonction du watcher
-async function watcher(){
-    try{
-        //URL de la page à surveiller
-        const URL= "https://www.vinted.fr/"
+//----------------------------------------------------------------------------------------------------
+//---------------------------------- FONCTION WATCHER VINTED -----------------------------------------
+//----------------------------------------------------------------------------------------------------
 
-        //Lancement du "headless browser"
+async function watcherVinted(URL){
+    try{
+        //Lancement du headless browser
         const browser = await puppeteer.launch({
             executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium'
         });
         const page = await browser.newPage();
         //Aller sur l'URL à surveiller
-        await page.goto(URL);
+        await page.goto(URL, { waitUntil: 'networkidle2' });
         // récupérer ce qui nous intéresse dans la page
         const data = await page.evaluate(() => {
             const results = []; //tableau pour stocker les données
-            const items = document.querySelectorAll('h1'); //sélectionner les éléments à récupérer
-            items.forEach(item => {
-                results.push(item.innerText);
+            const items = document.querySelectorAll('a.new-item-box__overlay');
+            const limitItems = Array.from(items).slice(0, 10); // limiter le nombre de résultats
+            limitItems.forEach(item => {
+                const titleAttribute = item.getAttribute('title');
+                const parts = titleAttribute.split(', ')
+
+                const titre = parts[0];
+                const prix = parts[1].split(': ')[1];
+                const marque = parts[2].split(': ')[1];
+                const taille = parts[3].split(': ')[1];
+
+                results.push({ titre, prix, marque, taille, lien : item.href, parts});
             });
             return results;
         });
-        //appel de la fonction init pour stocker les données dans un fichier
-        init(data);
+        // Afficher les données dans la console pour inspection
+        data.forEach(item => {
+            console.log(item.parts);
+        });
+        // Formater les données pour les stocker dans un fichier
+        const formattedData = data.map(item => {
+            return `Titre: ${item.titre}\nPrix: ${item.prix}\nMarque: ${item.marque}\nTaille: ${item.taille}\nlien: ${item.lien}\n\n`;
+        });
+        init(formattedData);
         //fermer le browser
         await browser.close();
     }
@@ -57,13 +74,20 @@ async function watcher(){
     }
 }
 
-// lancement de watcher en asynchrone pour pouvoir mettre await
+//----------------------------------------------------------------------------------------------------
+//------------------------------------ AU DÉMARRAGE DU CONTAINER -------------------------------------
+//----------------------------------------------------------------------------------------------------
+
 (async () => {
-    await watcher();
+    await watcherVinted(URL);
 })();
 
+//----------------------------------------------------------------------------------------------------
+//------------------------------------ PARTIE WEB DU CONTAINER ---------------------------------------
+//----------------------------------------------------------------------------------------------------
+
 app.get ('/', (req, res ) => {
-    fs.appendFile(filePath, content, (err) => {  //appendFile ajoute du contenu à un fichier ou alors le créer
+    fs.appendFile(filePath, content, (err) => {
         if (err){
             console.error('Error writing file', err);
         }
