@@ -1,9 +1,21 @@
 # Stage technicien du 27 mai au 21 juillet 2024.
 
 Le but de ce projet est de réaliser un watcher en JavaScript en utilisant un conteneur Docker.
+
+## Fonctionnalités actuelles du projet
+
+Le container généré par le projet permet de :
+- Lancer un navigateur headless pour scraper des données sur les articles du site Vinted 
+- se connecter à un bot discord pour envoyer les données récupérées sur un channel du serveur discord hébergeant le bot
+- Créer un fichier texte `init.txt` localement et y stocker les informations scrapées
+- Créer un fichier texte `test.txt` localement et y stocker un message prédéfini à chaque visite sur l'url du container
+
+Le bot est capable de scraper les titre, prix, marque, taille, url et image des articles de la page Vinted choisie.
+Son taux de rafraîchissement est de 5 secondes.
+
 ## Prérequis
 - Docker doit être installé
-- Node.js doit être installé pour le developpement local
+- Node.js & discord.js doivent être installés pour le développement local
 
 ## Installation
 1. **Cloner le repo**
@@ -15,7 +27,7 @@ cd stage
 ```bash
 mkdir -p $(pwd)/data
 ```
-3. **Installer Chrome pour Puppeteer & discord.js**
+3. **Installer Chrome pour Puppeteer & les bibliothèques nécessaires**
 ```bash
 npx puppeteer browsers install chrome
 npm i discord.js

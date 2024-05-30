@@ -25,6 +25,7 @@ RUN npm install puppeteer
 COPY package*.json app.js ./
 
 RUN npm install
+RUN npm i discord.js
 
 COPY . .
 

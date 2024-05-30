@@ -8,6 +8,9 @@ const express = require('express');
 const app = express();
 const createEmbed = require('./tools/embed.js');
 
+//variables de la boucle while
+let lastMaxId = 0;
+let continueScraping = false;
 
 //paramètres
 const content = 'Pitié faites que ça marche';
@@ -15,7 +18,7 @@ const filePath = process.env.FILE_PATH || '/home/pptruser/data/test.txt';
 const filePath_Init = process.env.FILE_PATH_INIT || '/home/pptruser/data/Init.txt';
 const URL = process.env.URL || 'https://www.vinted.fr';
 const port = process.env.PORT || 3000; //variable par défaut au cas où
-const message = process.env.MESSAGE || 'Hello World!';
+const messageWeb = process.env.MESSAGE || 'Hello World!';
 const token = process.env.DISCORD_BOT_TOKEN;
 const channelId = process.env.DISCORD_CHANNEL_ID;
 
@@ -76,57 +79,81 @@ async function discordData(data, channelId){
         console.error('Error sending data to Discord channel', err);
     }
 }
+
 //----------------------------------------------------------------------------------------------------
 //---------------------------------- FONCTION WATCHER VINTED -----------------------------------------
 //----------------------------------------------------------------------------------------------------
 
-async function watcherVinted(URL){
+async function watcherVinted(URL, lastMaxId){
     try{
         //Lancement du headless browser
         const browser = await puppeteer.launch({
             executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium'
         });
         const page = await browser.newPage();
-        //Aller sur l'URL à surveiller
-        await page.goto(URL, { waitUntil: 'networkidle2' });
-        // récupérer ce qui nous intéresse dans la page
-        const data = await page.evaluate(() => {
-            const results = []; //tableau pour stocker les données
-            const items = document.querySelectorAll('a.new-item-box__overlay');
-            const limitItems = Array.from(items).slice(0, 3); // limiter le nombre de résultats
-            limitItems.forEach(item => {
-                const titleAttribute = item.getAttribute('title');
-                const parts = titleAttribute.split(', ')
 
-                const titre = parts[0];
-                const prix = parts[1].split(': ')[1];
-                const marque = parts[2].split(': ')[1];
-                const taille = parts[3].split(': ')[1];
+        while (continueScraping) {
+            //Aller sur l'URL à surveiller
+            await page.goto(URL, { waitUntil: 'networkidle2' });
+            // récupérer ce qui nous intéresse dans la page
+            const data = await page.evaluate((lastMaxId) => {
+                const results = []; //tableau pour stocker les données
+                const items = document.querySelectorAll('a.new-item-box__overlay');
+                const limitItems = Array.from(items).slice(0, 3); // limiter le nombre de résultats
+                limitItems.forEach(item => {
+                    const titleAttribute = item.getAttribute('title');
+                    const parts = titleAttribute.split(', ')
 
-                //Récupérer l'url de l'image
-                const imgElement = item.closest('div.u-position-relative').querySelector('img');
-                const image = imgElement ? imgElement.src : null;
+                    const titre = parts[0];
+                    const prix = parts[1].split(': ')[1];
+                    const marque = parts[2].split(': ')[1];
+                    const taille = parts[3].split(': ')[1];
+                    const productId = parseInt(item.href.match(/\/items\/(\d+)-/)[1]);
+                    //Récupérer l'url de l'image
+                    if (productId > lastMaxId) {
+                    const imgElement = item.closest('div.u-position-relative').querySelector('img');
+                    const image = imgElement ? imgElement.src : null;
 
-                results.push({ titre, prix, marque, taille, lien : item.href, parts, image});
+                    results.push({ titre, prix, marque, taille, lien : item.href, parts, image, productId});
+                    }
+                });
+                return results;
+            }, lastMaxId);
+
+            //nouveau maxId
+            if (data.length > 0) {
+                lastMaxId = Math.max(...data.map(item => item.productId));
+                const formattedData = dataToText(data);
+                init(formattedData);
+                await discordData(data, channelId);
+            }else {
+                continueScraping = false;
+            }
+            // Afficher les données dans la console pour inspection
+            data.forEach(item => {
+                console.log(item.parts);
             });
-            return results;
-        });
-        // Afficher les données dans la console pour inspection
-        data.forEach(item => {
-            console.log(item.parts);
-        });
-        // Formater les données pour les stocker dans un fichier
-        const formattedData = dataToText(data);
-        init(formattedData);
-        //envoyer données à discord
-        await discordData(data, channelId);
-        //fermer le browser
-        await browser.close();
+            await new Promise(resolve => setTimeout(resolve, 5000)); //pause de 5sec
+        }
     } catch (err) {
         console.error('Error collecting data', err);
     }
 }
 
+//fonction pour lancer la boucle
+async function startScraping() {
+    if (!continueScraping) {
+        continueScraping = true;
+        await watcherVinted(URL, lastMaxId);
+    }
+}
+
+//fonction pour arrêter la boucle
+async function stopScraping() {
+    if (continueScraping) {
+        continueScraping = false;
+    }
+}
 //----------------------------------------------------------------------------------------------------
 //------------------------------------ AU DÉMARRAGE DU CONTAINER -------------------------------------
 //----------------------------------------------------------------------------------------------------
@@ -138,9 +165,20 @@ async function watcherVinted(URL){
 })();
 
 bot.on("ready", async () => {
-    await watcherVinted(URL);
+    await watcherVinted(URL, lastMaxId);
 })
 
+//écoute des commandes start et stop
+bot.on('messageCreate', async (message) => {
+    if (message.content === '!startBot') {
+        await message.reply('Scraping started 👍');
+        await startScraping();
+    }
+    if (message.content === '!stopBot') {
+        await stopScraping();
+        await message.reply('Scraping stopped 🛑');
+    }
+});
 
 //----------------------------------------------------------------------------------------------------
 //------------------------------------ PARTIE WEB DU CONTAINER ---------------------------------------
@@ -155,6 +193,6 @@ app.get ('/', (req, res ) => {
             console.log('Test File written successfully');
         }
     })
-    res.send(message)
+    res.send(messageWeb)
 });
 app.listen (port, () => console.log(`Server is running on port ${port}`));
