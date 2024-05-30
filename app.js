@@ -2,11 +2,14 @@ require('dotenv').config();
 
 const discord = require('discord.js');
 const bot = new discord.Client({intents : 3276799});
-const puppeteer = require("puppeteer");
+const puppeteer = require("puppeteer-extra");
 const fs = require('fs');
 const express = require('express');
 const app = express();
 const createEmbed = require('./tools/embed.js');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+// permet de rendre le bot moins détectable par les sites web
+puppeteer.use(StealthPlugin());
 
 //variables de la boucle while
 let lastMaxId = 0;
@@ -99,7 +102,7 @@ async function watcherVinted(URL, lastMaxId){
             const data = await page.evaluate((lastMaxId) => {
                 const results = []; //tableau pour stocker les données
                 const items = document.querySelectorAll('a.new-item-box__overlay');
-                const limitItems = Array.from(items).slice(0, 3); // limiter le nombre de résultats
+                const limitItems = Array.from(items).slice(0, 10); // limiter le nombre de résultats
                 limitItems.forEach(item => {
                     const titleAttribute = item.getAttribute('title');
                     const parts = titleAttribute.split(', ')
@@ -126,14 +129,12 @@ async function watcherVinted(URL, lastMaxId){
                 const formattedData = dataToText(data);
                 init(formattedData);
                 await discordData(data, channelId);
-            }else {
-                continueScraping = false;
             }
             // Afficher les données dans la console pour inspection
             data.forEach(item => {
                 console.log(item.parts);
             });
-            await new Promise(resolve => setTimeout(resolve, 5000)); //pause de 5sec
+            await new Promise(resolve => setTimeout(resolve, 500)); //temps de pause
         }
     } catch (err) {
         console.error('Error collecting data', err);

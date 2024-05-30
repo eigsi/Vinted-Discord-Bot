@@ -11,7 +11,8 @@ Le container généré par le projet permet de :
 - Créer un fichier texte `test.txt` localement et y stocker un message prédéfini à chaque visite sur l'url du container
 
 Le bot est capable de scraper les titre, prix, marque, taille, url et image des articles de la page Vinted choisie.
-Son taux de rafraîchissement est de 5 secondes.
+Le délai d'obtention des nouveaux articles est entre 20 et 30 secondes.
+Le plugin stealth de la bibliothèque puppeteer-extra est utilisé pour éviter le blocage du navigateur par le site Vinted.
 
 ## Prérequis
 - Docker doit être installé
@@ -31,6 +32,8 @@ mkdir -p $(pwd)/data
 ```bash
 npx puppeteer browsers install chrome
 npm i discord.js
+RUN npm install puppeteer
+RUN npm install puppeteer-extra puppeteer-extra-plugin-stealth
 ```
 
 ## Exécution du projet 

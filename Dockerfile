@@ -21,11 +21,13 @@ ENV DBUS_SESSION_BUS_ADDRESS=autolaunch:
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 RUN npm install puppeteer
+RUN npm install puppeteer-extra puppeteer-extra-plugin-stealth
 
 COPY package*.json app.js ./
 
 RUN npm install
 RUN npm i discord.js
+
 
 COPY . .
 
