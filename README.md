@@ -10,9 +10,11 @@ Le container généré par le projet permet de :
 - Créer un fichier texte `init.txt` localement et y stocker les informations scrapées
 - Créer un fichier texte `test.txt` localement et y stocker un message prédéfini à chaque visite sur l'url du container
 
-Le bot est capable de scraper les titre, prix, marque, taille, url et image des articles de la page Vinted choisie.
-Le délai d'obtention des nouveaux articles est entre 20 et 30 secondes.
-Le plugin stealth de la bibliothèque puppeteer-extra est utilisé pour éviter le blocage du navigateur par le site Vinted.
+Le bot est capable de scraper les titre, prix, marque, taille, url et image des articles de la page Vinted choisie.  
+Le délai d'obtention des nouveaux articles est entre 20 et 30 secondes.  
+La bibliothèque de [puppeteer-extra-plugin-stealth](https://github.com/berstend/puppeteer-extra/tree/master/packages/puppeteer-extra-plugin-stealth) est utilisée pour éviter le blocage du navigateur par `Datadome` sur Vinted.
+
+
 
 ## Prérequis
 - Docker doit être installé
