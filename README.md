@@ -45,7 +45,7 @@ RUN npm install puppeteer-extra puppeteer-extra-plugin-stealth
 ## Exécution du docker-compose
 
 ```bash
-docker-compose up --build -n
+docker-compose up --build -d
 ```
 ## Exécution du container scraping seulement
 - Il est nécessaire d'ajouter `--platform linux/arm64` seulement pour les mac ayant une puce Apple Silicon

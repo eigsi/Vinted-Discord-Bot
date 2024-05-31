@@ -8,6 +8,7 @@ const express = require('express');
 const app = express();
 const createEmbed = require('./tools/embed.js');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+const { Client } = require('pg'); // module PostgreSQL pour node
 
 // permet de rendre le bot moins détectable par les sites web
 puppeteer.use(StealthPlugin());
@@ -25,6 +26,20 @@ const port = process.env.PORT || 3000; //variable par défaut au cas où
 const messageWeb = process.env.MESSAGE || 'Hello World!';
 const token = process.env.DISCORD_BOT_TOKEN;
 const channelId = process.env.DISCORD_CHANNEL_ID;
+
+//connection à la base de données
+const client = new Client({
+    connectionString: process.env.DATABASE_URL,
+});
+
+async function connectToDatabase() {
+    try {
+        await client.connect();
+        console.log('Connected to PostgreSQL database successfully');
+    } catch (err) {
+        console.error('Error connecting to PostgreSQL database', err);
+    }
+}
 
 //créer le fichier dans lequel on collecte la data
 function init(data) {
@@ -124,12 +139,32 @@ async function watcherVinted(URL, lastMaxId){
                 return results;
             }, lastMaxId);
 
-            //nouveau maxId
             if (data.length > 0) {
-                lastMaxId = Math.max(...data.map(item => item.productId));
+                lastMaxId = Math.max(...data.map(item => item.productId)); //nouveau maxId
                 const formattedData = dataToText(data);
-                init(formattedData);
-                await discordData(data, channelId);
+                init(formattedData); // data envoyé dans init.txt
+                await discordData(data, channelId); // data envoyé sur Discord
+
+                //envoyer la data dans la db
+                for (const item of data) {
+                    const description = {
+                        titre: item.titre,
+                        prix: item.prix,
+                        marque: item.marque,
+                        taille: item.taille,
+                        lien: item.lien,
+                        id: item.productId
+                    };
+                    try {
+                        await client.query(
+                            'INSERT INTO articles (description) VALUES ($1)',
+                            [description]
+                        );
+                        console.log(`Article ${item.productId} inserted successfully.`);
+                    } catch (err) {
+                        console.error('Error inserting data into PostgreSQL', err);
+                    }
+                }
             }
             // Afficher les données dans la console pour inspection
             data.forEach(item => {
@@ -161,9 +196,10 @@ async function stopScraping() {
 //----------------------------------------------------------------------------------------------------
 
 
-//démarrer bot discord
+//démarrer bot discord & connection à la db
 (async () => {
     await startBot();
+    await connectToDatabase();
 })();
 
 bot.on("ready", async () => {
@@ -181,6 +217,7 @@ bot.on('messageCreate', async (message) => {
         await message.reply('Scraping stopped 🛑');
     }
 });
+
 
 //----------------------------------------------------------------------------------------------------
 //------------------------------------ PARTIE WEB DU CONTAINER ---------------------------------------

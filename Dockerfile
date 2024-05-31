@@ -27,6 +27,8 @@ COPY package*.json app.js ./
 
 RUN npm install
 RUN npm i discord.js
+RUN npm install pg
+
 
 
 COPY . .
