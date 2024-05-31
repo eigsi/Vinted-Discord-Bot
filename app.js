@@ -8,6 +8,7 @@ const express = require('express');
 const app = express();
 const createEmbed = require('./tools/embed.js');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+
 // permet de rendre le bot moins détectable par les sites web
 puppeteer.use(StealthPlugin());
 

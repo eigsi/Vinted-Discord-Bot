@@ -1,5 +1,5 @@
 # compatible avec l'architecture arm64 des macs à puce Silicon
-FROM node:20-bullseye-slim
+FROM --platform=$BUILDPLATFORM node:20-bullseye-slim
 
 # Configure default locale (important for chrome-headless-shell).
 ENV LANG en_US.UTF-8

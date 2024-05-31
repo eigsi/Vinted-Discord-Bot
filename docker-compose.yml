@@ -1,0 +1,29 @@
+
+services:
+  scraping:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - BUILDPLATFORM=linux/arm64
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL
+    volumes:
+      - ./data:/home/pptruser/data
+    ports:
+      - "3000:3000"
+    cap_add:
+      - SYS_ADMIN
+
+  postgres:
+    image: postgres:14-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - /data:/var/lib/postgresql/data
+    env_file:
+      - .env
