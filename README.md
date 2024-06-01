@@ -18,6 +18,10 @@ La bibliothèque de [puppeteer-extra-plugin-stealth](https://github.com/berstend
 
 2. **Le container postgres permet de**
 - Créer une base de données PostgreSQL
+- Récupérer les données scrapées et le stocker dans la db
+
+La base de données est composée d'une table `articles` avec 3 colonnes : `ID`, `UUID` et `description`.  
+Description est un objet JSON contenant les informations des articles scrapées.
 
 
 ## Prérequis
