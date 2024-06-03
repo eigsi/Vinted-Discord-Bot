@@ -41,6 +41,10 @@ async function connectToDatabase() {
     }
 }
 
+//----------------------------------------------------------------------------------------------------
+//----------------------------------- FONCTIONS DE PREPARATION----------------------------------------
+//----------------------------------------------------------------------------------------------------
+
 //créer le fichier dans lequel on collecte la data
 function init(data) {
     const content_Init = data.join('\n')  || 'lancement du fichier'; // prend les données récupérées et les met dans un string
@@ -70,6 +74,31 @@ function dataToDiscord(data){
             image : item.image
         }
     });
+}
+
+//scroll de la page pour avoir suffisamment d'items
+async function autoScroll(page, nbItems) {
+
+    const scrollResults = await page.evaluate(async (nbItems) => {
+        //const logs = [];
+        await new Promise((resolve) => {
+            let totalHeight = 0;
+            const distance = 100;
+            const timer = setInterval(() => {
+                const scrollHeight = document.body.scrollHeight;
+                window.scrollBy(0, distance);
+                totalHeight += distance;
+                //const items = document.querySelectorAll('a.new-item-box__overlay');
+                //logs.push(`Scrolled height: ${totalHeight}, Items loaded: ${items.length}`);
+                if (totalHeight >= scrollHeight || document.querySelectorAll('a.new-item-box__overlay').length >= nbItems) {
+                    clearInterval(timer);
+                    resolve();
+                }
+            }, 100);
+        });
+        //return logs;
+    }, nbItems);
+    //scrollResults.forEach(log => console.log(log)); // afficher les logs
 }
 //----------------------------------------------------------------------------------------------------
 //---------------------------------- FONCTIONS POUR DISCORD ------------------------------------------
@@ -103,7 +132,7 @@ async function discordData(data, channelId){
 //---------------------------------- FONCTION WATCHER VINTED -----------------------------------------
 //----------------------------------------------------------------------------------------------------
 
-async function watcherVinted(URL, lastMaxId){
+async function watcherVinted(URL, lastMaxId, nbItems = 5){
     try{
         //Lancement du headless browser
         const browser = await puppeteer.launch({
@@ -114,12 +143,30 @@ async function watcherVinted(URL, lastMaxId){
         while (continueScraping) {
             //Aller sur l'URL à surveiller
             await page.goto(URL, { waitUntil: 'networkidle2' });
+
+            //Récupérer le nombre d'items avant de scroller
+            const itemsBeforeScroll = await page.evaluate(() => {
+                return document.querySelectorAll('a.new-item-box__overlay').length;
+            });
+            console.log(`Number of items found before scroll: ${itemsBeforeScroll}`);
+
+            // Scroller la page pour charger un minimum d'items
+            console.log('Scrolling page...');
+            await autoScroll(page, nbItems);
+
             // récupérer ce qui nous intéresse dans la page
-            const data = await page.evaluate((lastMaxId) => {
+            console.log('Collecting data...');
+            const { results, logs } = await page.evaluate((lastMaxId, nbItems) => {
                 const results = []; //tableau pour stocker les données
+                const logs = [];
                 const items = document.querySelectorAll('a.new-item-box__overlay');
-                const limitItems = Array.from(items).slice(0, 10); // limiter le nombre de résultats
+                logs.push(`Number of items found: ${items.length}`);
+                const limitItems = Array.from(items).slice(0, nbItems); // limiter le nombre de résultats
+                logs.push(`Number of items limited to: ${limitItems.length}`);
                 limitItems.forEach(item => {
+                    const productId = parseInt(item.href.match(/\/items\/(\d+)-/)[1]);
+                    //Récupérer l'url de l'image
+                    if (productId > lastMaxId) {
                     const titleAttribute = item.getAttribute('title');
                     const parts = titleAttribute.split(', ')
 
@@ -127,26 +174,29 @@ async function watcherVinted(URL, lastMaxId){
                     const prix = parts[1].split(': ')[1];
                     const marque = parts[2].split(': ')[1];
                     const taille = parts[3].split(': ')[1];
-                    const productId = parseInt(item.href.match(/\/items\/(\d+)-/)[1]);
-                    //Récupérer l'url de l'image
-                    if (productId > lastMaxId) {
+
+
                     const imgElement = item.closest('div.u-position-relative').querySelector('img');
                     const image = imgElement ? imgElement.src : null;
 
                     results.push({ titre, prix, marque, taille, lien : item.href, parts, image, productId});
                     }
                 });
-                return results;
-            }, lastMaxId);
+                return { results, logs };
+            }, lastMaxId, nbItems);
 
-            if (data.length > 0) {
-                lastMaxId = Math.max(...data.map(item => item.productId)); //nouveau maxId
-                const formattedData = dataToText(data);
+            //afficher les logs
+            logs.forEach(log => console.log(log));
+
+            if (results.length > 0) {
+                console.log('Data collected:', results.length, 'items');
+                lastMaxId = Math.max(...results.map(item => item.productId)); //nouveau maxId
+                const formattedData = dataToText(results);
                 init(formattedData); // data envoyé dans init.txt
-                await discordData(data, channelId); // data envoyé sur Discord
+                await discordData(results, channelId); // data envoyé sur Discord
 
                 //envoyer la data dans la db
-                for (const item of data) {
+                for (const item of results) {
                     const description = {
                         titre: item.titre,
                         prix: item.prix,
@@ -165,13 +215,16 @@ async function watcherVinted(URL, lastMaxId){
                         console.error('Error inserting data into PostgreSQL', err);
                     }
                 }
+            }else {
+                console.log('No new items');
             }
             // Afficher les données dans la console pour inspection
-            data.forEach(item => {
+            results.forEach(item => {
                 console.log(item.parts);
             });
             await new Promise(resolve => setTimeout(resolve, 500)); //temps de pause
         }
+        await browser.close();
     } catch (err) {
         console.error('Error collecting data', err);
     }
@@ -203,7 +256,7 @@ async function stopScraping() {
 })();
 
 bot.on("ready", async () => {
-    await watcherVinted(URL, lastMaxId);
+    await watcherVinted(URL, lastMaxId, 5);
 })
 
 //écoute des commandes start et stop
