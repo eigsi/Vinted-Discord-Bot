@@ -1,14 +1,15 @@
-# Stage technicien du 27 mai au 21 juillet 2024.
+# Stage technicien du 27 mai au 21 juillet 2024 : Projet 1 
 
-Le but de ce projet est de réaliser un watcher en JavaScript en utilisant un conteneur Docker.
+Le but de ce projet est de réaliser un watcher Vinted en JavaScript en utilisant des containers Docker
 
 ## Fonctionnalités actuelles du projet
 
 Le projet est un docker compose qui exécute 2 containers : **scraping** pour scraper des données et **postgres** pour les stocker dans une db
 
 1. **Le container scraping permet de**
-- Lancer un navigateur headless pour scraper des données sur les articles du site Vinted 
-- se connecter à un bot discord pour envoyer les données récupérées sur un channel du serveur discord hébergeant le bot
+- Lancer un navigateur headless pour scraper des données sur les articles du site Vinted
+- Scroller la page pour s'assurer de charger le nombre d'items choisi
+- se lier à un bot discord pour envoyer les données scrapées sur un channel discord
 - Créer un fichier texte `init.txt` localement et y stocker les informations scrapées
 - Créer un fichier texte `test.txt` localement et y stocker un message prédéfini à chaque visite sur l'url du container
 
@@ -34,7 +35,7 @@ Description est un objet JSON contenant les informations des articles scrapées.
 git clone https://github.com/eigsi/stage.git
 cd stage
 ```
-2. **Créer un dossier pour le volume (si ce n'est pas déjà fait)**
+2. **Créer un dossier pour le volume**
 ```bash
 mkdir -p $(pwd)/data
 ```
