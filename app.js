@@ -18,11 +18,11 @@ let lastMaxId = 0;
 let continueScraping = false;
 
 //paramètres
-const content = 'Pitié faites que ça marche';
+const content = 'test';
 const filePath = process.env.FILE_PATH || '/home/pptruser/data/test.txt';
 const filePath_Init = process.env.FILE_PATH_INIT || '/home/pptruser/data/Init.txt';
 const URL = process.env.URL || 'https://www.vinted.fr';
-const port = process.env.PORT || 3000; //variable par défaut au cas où
+const port = process.env.PORT || 3000; 
 const messageWeb = process.env.MESSAGE || 'Hello World!';
 const token = process.env.DISCORD_BOT_TOKEN;
 const channelId = process.env.DISCORD_CHANNEL_ID;
@@ -80,7 +80,6 @@ function dataToDiscord(data){
 async function autoScroll(page, nbItems) {
 
     const scrollResults = await page.evaluate(async (nbItems) => {
-        //const logs = [];
         await new Promise((resolve) => {
             let totalHeight = 0;
             const distance = 100;
@@ -88,17 +87,13 @@ async function autoScroll(page, nbItems) {
                 const scrollHeight = document.body.scrollHeight;
                 window.scrollBy(0, distance);
                 totalHeight += distance;
-                //const items = document.querySelectorAll('a.new-item-box__overlay');
-                //logs.push(`Scrolled height: ${totalHeight}, Items loaded: ${items.length}`);
                 if (totalHeight >= scrollHeight || document.querySelectorAll('a.new-item-box__overlay').length >= nbItems) {
                     clearInterval(timer);
                     resolve();
                 }
             }, 100);
         });
-        //return logs;
     }, nbItems);
-    //scrollResults.forEach(log => console.log(log)); // afficher les logs
 }
 //----------------------------------------------------------------------------------------------------
 //---------------------------------- FONCTIONS POUR DISCORD ------------------------------------------
